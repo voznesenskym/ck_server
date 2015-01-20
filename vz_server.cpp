@@ -18,6 +18,7 @@ client_t * vz_server::client_new (zframe_t *address)
     client_t *self = (client_t *) zmalloc (sizeof (client_t));
     assert (self);
     
+    //curve_codec_t
     self->codec = curve_codec_new_server (this->cert, this->ctx);
     
     assert (self->codec);
@@ -182,9 +183,9 @@ void vz_server::run()
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                 zframe_send (&output, this->router_socket, 0);
 
-                char *client_identity = zhash_lookup (curve_codec_metadata (client), "identity");
+                char *client_identity = zhash_lookup (curve_codec_metadata (client->codec), "identity");
                 printf("client identity is %s \n", client_identity);
-                char *client_name = zhash_lookup (curve_codec_metadata (client), "client");
+                char *client_name = zhash_lookup (curve_codec_metadata (client->codec), "client");
                 printf("client name is %s \n", client_name);
 
                 if (curve_codec_connected (client->codec))
