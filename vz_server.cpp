@@ -18,20 +18,12 @@ client_t * vz_server::client_new (zframe_t *address)
     client_t *self = (client_t *) zmalloc (sizeof (client_t));
     assert (self);
     
-    //curve_codec_t
     self->codec = curve_codec_new_server (this->cert, this->ctx);
-    
     assert (self->codec);
     
-    
-
     curve_codec_set_verbose(self->codec, true);
     self->address = zframe_dup (address);
     self->hashkey = zframe_strhex (address);
-
-    
-
-
     return self;
 }
 
@@ -41,7 +33,6 @@ void vz_server::send_frame_client(client_t *client, zframe_t *frame)
         client->incoming = zmsg_new ();
 
     zframe_t *cleartext = zframe_dup(frame);
-    // printf("cleartext message in zframe_t: %s\n", cleartext);
     zmsg_add (client->incoming, cleartext);
     zmsg_pushstr (client->incoming, client->hashkey);
     zframe_t *encrypted_next = curve_codec_encode (client->codec, &cleartext);
@@ -55,15 +46,10 @@ void vz_server::send_frame_client(client_t *client, zframe_t *frame)
 void vz_server::send_multicast(zframe_t *frame, client_t *except_client)
 {
     zlist_t *list_key = zhash_keys(this->clients);
-    printf("there are this many clients in broadcast %zu\n", zlist_size(list_key));
-
-    // char *zframe_dump = zframe_strdup(frame);
-        // printf("zframe_dump attempt : %s\n",zframe_dump);
     char *key = (char *)zlist_first(list_key);
     
     while (key != NULL)
     {
-        printf("key is %s\n", key);
         client_t *client = (client_t *)zhash_lookup(this->clients, key);
         
         if (client != except_client && except_client->state == connected)
@@ -126,42 +112,34 @@ void vz_server::run()
 {
 
 #ifdef E2E_ENCRYPTION
+    printf("running E2E_ENCRYPTION \n");
     curve_server_bind(this->curve_server, (char *)"tcp://*:9000");
     bool finished = false;
     
     while (!finished)
     {
         zmsg_t *msg = curve_server_recv (this->curve_server);
-        
-        printf("\n Recv message in E2E_ENCRYPTION: %s\n", msg);
-
         curve_server_send (curve_server, &msg);
         zmsg_destroy(&msg);
     }
     curve_server_destroy (&this->curve_server);
     
 #elif defined E2E_CURVE
+    printf("running E2E_CURVE \n");
     int rc = zsocket_bind (router_socket, "tcp://*:9000");
     assert (rc != -1);
 
     while (true)
     {
         zframe_t *address = zframe_recv (this->router_socket);
-        char *addressdump = zframe_strdup(address);
-
-        printf("\n  client with addressdump %s \n", addressdump);
-
         char *hashkey = zframe_strhex (address);
         client_t *client = (client_t *)zhash_lookup (this->clients, hashkey);
         
         if (client == NULL)
         {
             client = this->client_new(address);
-
             client->state = pending;
-            printf("\n new client with hashkey %s\n", hashkey);
             zhash_insert (this->clients, hashkey, client);
-            // zhash_insert (zhash_t *self, const char *key, void *item);
         }
         
         free (hashkey);
@@ -182,14 +160,6 @@ void vz_server::run()
             {
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                 zframe_send (&output, this->router_socket, 0);
-
-                zhash_t *client_codec_metadata = curve_codec_metadata(client->codec);
-                char *client_identity = zhash_lookup(client_codec_metadata, "identity");
-                // char *client_identity = zhash_lookup (curve_codec_metadata (client->codec), "identity");
-                // printf("client identity is %s \n", client_identity);
-                // char *client_name = zhash_lookup (curve_codec_metadata (client->codec), "client");
-                // printf("client name is %s \n", client_name);
-
                 if (curve_codec_connected (client->codec))
                     client->state = connected;
             }
@@ -200,51 +170,35 @@ void vz_server::run()
         }
         else if (client->state == connected)
         {
-            printf("client state is connected \n");
             zframe_t *encrypted = zframe_recv (this->router_socket);
             zframe_t *cleartext = curve_codec_decode (client->codec, &encrypted);
-            
             zframe_t *cleartext_cpy = zframe_dup(cleartext);
             
             if (cleartext)
             {
                 if (client->incoming == NULL)
                     client->incoming = zmsg_new ();
-                printf("new message, broadcast text %s\n", cleartext);
-                //if "setname; <NAME>"
-                char *textdump = zframe_strdup(cleartext);
-                std::string textdumpstr(textdump);
-                std::cout << "textdumpstr(7) is: " << textdumpstr.substr(0,7);
-                if (textdumpstr.substr(0, 7) == "setname"){
-                    printf("\n\n\n\n  returning cause its a setname  \n\n\n\n");
-                    const char *cstr = textdumpstr.substr(8, 100).c_str();
-                    std::cout << "textdumpstr(8,1000) is: " << textdumpstr.substr(8, 100);
-                    zhash_insert (this->clients, cstr, client);
-                    //const char *cstr = str.c_str();
+                
+                zmsg_add (client->incoming, cleartext);
+                
+                if (!zframe_more (cleartext))
+                {
+                    zmsg_pushstr (client->incoming, client->hashkey);
+                    zframe_t *encrypted = curve_codec_encode (client->codec, &cleartext);
                     
-                } else {
-                    zmsg_add (client->incoming, cleartext);
-                    
-                    if (!zframe_more (cleartext))
+                    if (encrypted)
                     {
-                        zmsg_pushstr (client->incoming, client->hashkey);
-                        zframe_t *encrypted = curve_codec_encode (client->codec, &cleartext);
-                        
-                        if (encrypted)
-                        {
-                            zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
-                            zframe_send (&encrypted, this->router_socket, 0);
-                            printf("cleartext message in send_multicast: %s\n", cleartext_cpy);
-                            this->send_multicast(cleartext_cpy, client);
-                        }
-                        else
-                        {
-                            client->state = exception;
-                        }
+                        zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
+                        zframe_send (&encrypted, this->router_socket, 0);
+                        this->send_multicast(cleartext_cpy, client);
                     }
-                    
-                    zframe_destroy(&cleartext_cpy);
+                    else
+                    {
+                        client->state = exception;
+                    }
                 }
+                
+                zframe_destroy(&cleartext_cpy);
             }
             else
             {
