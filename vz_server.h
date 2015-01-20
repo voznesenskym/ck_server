@@ -44,6 +44,7 @@ typedef struct
     zframe_t *address;          //  Client address identity
     zmsg_t *incoming;           //  Incoming message, if any
     char *hashkey;              //  Key into clients hash
+    char * identity;            //  Identity of the client
 }
 client_t;
 
@@ -60,6 +61,7 @@ private:
     void            * router_socket;
     zhash_t         *clients;
     zcert_t         *cert;
+    zhash_t         *clients_by_identity;
     
 #else
     zctx_t  * context;

@@ -167,6 +167,8 @@ void vz_server::run()
             zframe_t *input = zframe_recv (this->router_socket);
             zframe_t *output = curve_codec_execute (client->codec, &input);
             
+
+
             if (output)
             {
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
@@ -189,11 +191,15 @@ void vz_server::run()
             zframe_t *cleartext = curve_codec_decode (client->codec, &encrypted);
             zframe_t *cleartext_cpy = zframe_dup(cleartext);
             
+            char *cleartext_string = zframe_strdup(cleartext);
+            printf("Recv message: %s\n", cleartext_string);
 
             zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
             char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
-    
+            
+            zhash_insert(this->clients_by_identity)
+
             if (cleartext)
             {
                 if (client->incoming == NULL)
