@@ -22,9 +22,11 @@ client_t * vz_server::client_new (zframe_t *address)
     self->codec = curve_codec_new_server (this->cert, this->ctx);
     assert (self->codec);
     zhash_t *metadata_from_codec = curve_codec_metadata(self->codec);
-    zlist_t *hash_keys_from_meta = zhash_keys(metadata_from_codec);
+    zhash_save(metadata_from_codec, "hashprintout");
+    printf("Printed File \n");
+    // zlist_t *hash_keys_from_meta = zhash_keys(metadata_from_codec);
 
-    printf("z_list is %s \n", hash_keys_from_meta);
+    // printf("z_list is %s \n", hash_keys_from_meta);
 
     curve_codec_set_verbose(self->codec, true);
     self->address = zframe_dup (address);
