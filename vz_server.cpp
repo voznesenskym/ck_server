@@ -184,6 +184,11 @@ void vz_server::run()
             zframe_t *cleartext = curve_codec_decode (client->codec, &encrypted);
             zframe_t *cleartext_cpy = zframe_dup(cleartext);
             
+
+            zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
+            zhash_save(metadata_from_codec, "hashprintout");
+            printf("Printed File \n");
+            
             if (cleartext)
             {
                 if (client->incoming == NULL)
@@ -196,9 +201,6 @@ void vz_server::run()
                     zmsg_pushstr (client->incoming, client->hashkey);
                     zframe_t *encrypted = curve_codec_encode (client->codec, &cleartext);
                     
-                    zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
-                    zhash_save(metadata_from_codec, "hashprintout");
-                    printf("Printed File \n");
 
                     if (encrypted)
                     {
