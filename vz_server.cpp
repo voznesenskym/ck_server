@@ -28,12 +28,9 @@ client_t * vz_server::client_new (zframe_t *address)
     self->address = zframe_dup (address);
     self->hashkey = zframe_strhex (address);
 
-    zhash_t *self_codec_data = curve_codec_metadata(self->codec);
-
-    char *identity = zhash_lookup(self_codec_data, "identity");
-    printf("identity is %s \n", identity);
-
     
+
+
     return self;
 }
 
@@ -184,6 +181,12 @@ void vz_server::run()
             {
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                 zframe_send (&output, this->router_socket, 0);
+
+                char *client_identity = zhash_lookup (curve_codec_metadata (client), "identity");
+                printf("client identity is %s \n", client_identity);
+                char *client_name = zhash_lookup (curve_codec_metadata (client), "client");
+                printf("client name is %s \n", client_name);
+
                 if (curve_codec_connected (client->codec))
                     client->state = connected;
             }
