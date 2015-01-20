@@ -21,9 +21,7 @@ client_t * vz_server::client_new (zframe_t *address)
     //curve_codec_t
     self->codec = curve_codec_new_server (this->cert, this->ctx);
     assert (self->codec);
-    zhash_t *metadata_from_codec = curve_codec_metadata(self->codec);
-    zhash_save(metadata_from_codec, "hashprintout");
-    printf("Printed File \n");
+
     // zlist_t *hash_keys_from_meta = zhash_keys(metadata_from_codec);
 
     // printf("z_list is %s \n", hash_keys_from_meta);
@@ -170,6 +168,7 @@ void vz_server::run()
                 zframe_send (&output, this->router_socket, 0);
                 if (curve_codec_connected (client->codec)) {
                     client->state = connected;
+
                     printf("Connected \n");
                 }
             }
@@ -197,6 +196,10 @@ void vz_server::run()
                     zmsg_pushstr (client->incoming, client->hashkey);
                     zframe_t *encrypted = curve_codec_encode (client->codec, &cleartext);
                     
+                    zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
+                    zhash_save(metadata_from_codec, "hashprintout");
+                    printf("Printed File \n");
+
                     if (encrypted)
                     {
                         zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
