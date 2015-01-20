@@ -18,9 +18,14 @@ client_t * vz_server::client_new (zframe_t *address)
     client_t *self = (client_t *) zmalloc (sizeof (client_t));
     assert (self);
     
+    //curve_codec_t
     self->codec = curve_codec_new_server (this->cert, this->ctx);
     assert (self->codec);
-    
+    zhash_t *metadata_from_codec = curve_codec_metadata(self->codec);
+    zlist_t *hash_keys_from_meta = zhash_keys(metadata_from_codec);
+
+    printf("z_list is %s \n", hash_keys_from_meta);
+
     curve_codec_set_verbose(self->codec, true);
     self->address = zframe_dup (address);
     self->hashkey = zframe_strhex (address);
@@ -153,6 +158,7 @@ void vz_server::run()
         
         if (client->state == pending)
         {
+            printf("Connection pending... \n");
             zframe_t *input = zframe_recv (this->router_socket);
             zframe_t *output = curve_codec_execute (client->codec, &input);
             
@@ -160,11 +166,14 @@ void vz_server::run()
             {
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                 zframe_send (&output, this->router_socket, 0);
-                if (curve_codec_connected (client->codec))
+                if (curve_codec_connected (client->codec)) {
                     client->state = connected;
+                    printf("Connected \n");
+                }
             }
             else
             {
+                printf("exception \n");
                 client->state = exception;
             }
         }
