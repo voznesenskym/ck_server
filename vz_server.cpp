@@ -22,14 +22,18 @@ client_t * vz_server::client_new (zframe_t *address)
     
     assert (self->codec);
     
+    
+
+    curve_codec_set_verbose(self->codec, true);
+    self->address = zframe_dup (address);
+    self->hashkey = zframe_strhex (address);
+
     zhash_t *self_codec_data = curve_codec_metadata(self->codec);
 
     char *identity = zhash_lookup(self_codec_data, "identity");
     printf("identity is %s \n", identity);
+
     
-    curve_codec_set_verbose(self->codec, true);
-    self->address = zframe_dup (address);
-    self->hashkey = zframe_strhex (address);
     return self;
 }
 
