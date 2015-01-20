@@ -98,6 +98,7 @@ void vz_server::init()
     assert (this->cert);
     
     this->clients = zhash_new();
+    this->clients_by_identity = zhash_new();
     assert (this->clients);
     
 #else
@@ -144,7 +145,7 @@ void vz_server::run()
         {
             client = this->client_new(address);
             client->state = pending;
-            zhash_insert (this->clients, hashkey, client);
+            zhash_insert(this->clients, hashkey, client);
         } else {
             printf("We already know this client \n");
             zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
