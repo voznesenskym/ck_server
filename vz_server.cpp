@@ -145,6 +145,11 @@ void vz_server::run()
             client = this->client_new(address);
             client->state = pending;
             zhash_insert (this->clients, hashkey, client);
+        } else {
+            printf("We already know this client \n");
+            zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
+            char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
+            printf("known client identity is %s \n", client_identity);
         }
         
         free (hashkey);
@@ -186,9 +191,6 @@ void vz_server::run()
             
 
             zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
-            zhash_save(metadata_from_codec, "hashprintout");
-            printf("Printed File \n");
-            
             char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
     
