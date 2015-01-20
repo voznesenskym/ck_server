@@ -198,12 +198,13 @@ void vz_server::run()
             char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
             
-            zhash_insert(this->clients_by_identity)
+            zhash_insert(this->clients_by_identity, client_identity, client);
 
             if (cleartext)
             {
-                if (client->incoming == NULL)
+                if (client->incoming == NULL) {
                     client->incoming = zmsg_new ();
+                }
                 
                 zmsg_add (client->incoming, cleartext);
                 
