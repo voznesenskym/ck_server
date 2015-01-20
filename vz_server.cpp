@@ -41,7 +41,7 @@ void vz_server::send_frame_client(client_t *client, zframe_t *frame)
         client->incoming = zmsg_new ();
 
     zframe_t *cleartext = zframe_dup(frame);
-    printf("cleartext message in zframe_t: %s\n", cleartext);
+    // printf("cleartext message in zframe_t: %s\n", cleartext);
     zmsg_add (client->incoming, cleartext);
     zmsg_pushstr (client->incoming, client->hashkey);
     zframe_t *encrypted_next = curve_codec_encode (client->codec, &cleartext);
@@ -57,7 +57,7 @@ void vz_server::send_multicast(zframe_t *frame, client_t *except_client)
     zlist_t *list_key = zhash_keys(this->clients);
     printf("there are this many clients in broadcast %zu\n", zlist_size(list_key));
 
-    char *zframe_dump = zframe_strdup(frame);
+    // char *zframe_dump = zframe_strdup(frame);
         // printf("zframe_dump attempt : %s\n",zframe_dump);
     char *key = (char *)zlist_first(list_key);
     
@@ -183,10 +183,12 @@ void vz_server::run()
                 zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                 zframe_send (&output, this->router_socket, 0);
 
-                char *client_identity = zhash_lookup (curve_codec_metadata (client->codec), "identity");
-                printf("client identity is %s \n", client_identity);
-                char *client_name = zhash_lookup (curve_codec_metadata (client->codec), "client");
-                printf("client name is %s \n", client_name);
+                zhash_t *client_codec_metadata = curve_codec_metadata(client->codec);
+                char *client_identity = zhash_lookup(client_codec_metadata, "identity");
+                // char *client_identity = zhash_lookup (curve_codec_metadata (client->codec), "identity");
+                // printf("client identity is %s \n", client_identity);
+                // char *client_name = zhash_lookup (curve_codec_metadata (client->codec), "client");
+                // printf("client name is %s \n", client_name);
 
                 if (curve_codec_connected (client->codec))
                     client->state = connected;
