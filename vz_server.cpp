@@ -189,7 +189,7 @@ void vz_server::run()
             zhash_save(metadata_from_codec, "hashprintout");
             printf("Printed File \n");
             
-            char *client_identity = zhash_lookup (metadata_from_codec, "identity");
+            char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
     
             if (cleartext)
