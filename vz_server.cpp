@@ -19,8 +19,13 @@ client_t * vz_server::client_new (zframe_t *address)
     assert (self);
     
     self->codec = curve_codec_new_server (this->cert, this->ctx);
+    
     assert (self->codec);
     
+    zhash_t *self_codec_data = curve_codec_metadata(self->codec);
+
+    char *identity = zhash_lookup(self_codec_data, "identity");
+
     curve_codec_set_verbose(self->codec, true);
     self->address = zframe_dup (address);
     self->hashkey = zframe_strhex (address);
@@ -141,7 +146,7 @@ void vz_server::run()
         zframe_t *address = zframe_recv (this->router_socket);
         char *addressdump = zframe_strdup(address);
 
-        printf("\n\n\n\n  client with addressdump %s \n\n\n", addressdump);
+        printf("\n  client with addressdump %s \n", addressdump);
 
         char *hashkey = zframe_strhex (address);
         client_t *client = (client_t *)zhash_lookup (this->clients, hashkey);
@@ -151,7 +156,7 @@ void vz_server::run()
             client = this->client_new(address);
 
             client->state = pending;
-            printf("\n\n\n\n new client with hashkey %s\n\n\n", hashkey);
+            printf("\n new client with hashkey %s\n", hashkey);
             zhash_insert (this->clients, hashkey, client);
             // zhash_insert (zhash_t *self, const char *key, void *item);
         }
