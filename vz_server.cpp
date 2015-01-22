@@ -203,7 +203,7 @@ void vz_server::run()
             
             zhash_insert(this->clients_by_identity, client_identity, client);
 
-            char **split_cleartext =  split(cleartext_string,";");
+            char **split_cleartext = self->split(cleartext_string,";");
 
             char *target_of_msg = split_cleartext[0];
 
@@ -301,13 +301,13 @@ char **vz_server::split(char *input, char *delimiter)
     int i,j;
     unsigned long dlen = strlen(delimiter);
     for (i=0,j=0; i+j+dlen < strlen(input); strncmp(input+i+j, delimiter, dlen) ? i++ : j++);
-    char **result = malloc((i+1) * sizeof(char));
+    char **result = (char**)malloc((i+1) * sizeof(char));
     
     // copy substrings into array
     i = 0;
     while ((token = strsep(&input, delimiter)) != NULL)
     {
-        result[i] = malloc(strlen(token)+1);
+        result[i] = (char*)malloc(strlen(token)+1);
         strcpy(result[i], token);
         printf("%s\n", result[i]);
     }
