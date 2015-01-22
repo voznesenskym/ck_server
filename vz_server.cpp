@@ -233,11 +233,13 @@ void vz_server::run()
                         // zframe_send (&encrypted, this->router_socket, 0);
                         // this->send_multicast(cleartext_cpy, client);
                         client_t *bob_identity = (client_t *)zhash_lookup (clients_by_identity, "Bob");
-                        printf("client identity with bob is %s \n", bob_identity->identity);
-
+                        if (bob_identity) {
+                            printf("client identity with bob is %s \n", bob_identity->identity);
+                        }
                         client_t *alice_identity = (client_t *)zhash_lookup (clients_by_identity, "Alice");
-                        printf("client identity with alice is %s \n", alice_identity->identity);
-
+                        if (alice_identity) {
+                            printf("client identity with alice is %s \n", alice_identity->identity);
+                        }
                         if (target_client) {
                             printf("Sending to target_client \n");
                             this->send_frame_client(target_client, cleartext_cpy);
