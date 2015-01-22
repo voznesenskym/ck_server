@@ -195,11 +195,22 @@ void vz_server::run()
             char *cleartext_string = zframe_strdup(cleartext);
             printf("Recv message: %s\n", cleartext_string);
 
+
+
             zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
             char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
             
             zhash_insert(this->clients_by_identity, client_identity, client);
+
+            char **split_cleartext =  split(cleartext_string,";");
+
+            char *target_of_msg = split_cleartext[0];
+
+            printf("Target of msg is %s\n", target_of_msg);
+
+            client_t *target_client = zhash_lookup(this->clients_by_identity, target_of_msg);
+
 
             if (cleartext)
             {
@@ -217,9 +228,15 @@ void vz_server::run()
 
                     if (encrypted)
                     {
-                        zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
-                        zframe_send (&encrypted, this->router_socket, 0);
-                        this->send_multicast(cleartext_cpy, client);
+                        // zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
+                        // zframe_send (&encrypted, this->router_socket, 0);
+                        // this->send_multicast(cleartext_cpy, client);
+                        if (target_client) {
+                            printf("Sending to target_client \n");
+                            this->send_frame_client(target_client, cleartext_cpy);
+                        } else {
+                            printf("Failed ot send to target client \n");
+                        }
                     }
                     else
                     {
@@ -272,6 +289,31 @@ void vz_server::run()
     zctx_destroy (&this->context);
 #endif
 }
+
+char **split(char *input, char *delimiter)
+{
+    assert(input != NULL);
+    char *token;
+    
+    input = strdup(input);
+    
+    // count occurences of delimiter
+    int i,j;
+    unsigned long dlen = strlen(delimiter);
+    for (i=0,j=0; i+j+dlen < strlen(input); strncmp(input+i+j, delimiter, dlen) ? i++ : j++);
+    char **result = malloc((i+1) * sizeof(char));
+    
+    // copy substrings into array
+    i = 0;
+    while ((token = strsep(&input, delimiter)) != NULL)
+    {
+        result[i] = malloc(strlen(token)+1);
+        strcpy(result[i], token);
+        printf("%s\n", result[i]);
+    }
+    return result;
+}
+
 
 vz_server::~vz_server()
 {
