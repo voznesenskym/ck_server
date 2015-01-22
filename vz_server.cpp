@@ -204,7 +204,7 @@ void vz_server::run()
             
             zhash_insert(this->clients_by_identity, client_identity, client);
 
-            char **split_cleartext = this->split(cleartext_string,";");
+            char **split_cleartext = this->split(cleartext_string,(char*)";");
 
             char *target_of_msg = split_cleartext[0];
 
@@ -232,10 +232,10 @@ void vz_server::run()
                         // zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                         // zframe_send (&encrypted, this->router_socket, 0);
                         // this->send_multicast(cleartext_cpy, client);
-                        client_t *bob_identity = (char *)zhash_lookup (clients_by_identity, "Bob");
+                        client_t *bob_identity = (client_t *)zhash_lookup (clients_by_identity, "Bob");
                         printf("client identity with bob is %s \n", bob_identity->identity);
 
-                        client_t *alice_identity = (char *)zhash_lookup (clients_by_identity, "Alice");
+                        client_t *alice_identity = (client_t *)zhash_lookup (clients_by_identity, "Alice");
                         printf("client identity with alice is %s \n", alice_identity->identity);
 
                         if (target_client) {
