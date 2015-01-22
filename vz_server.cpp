@@ -290,7 +290,7 @@ void vz_server::run()
 #endif
 }
 
-char **split(char *input, char *delimiter)
+char **vz_server::split(char *input, char *delimiter)
 {
     assert(input != NULL);
     char *token;

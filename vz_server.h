@@ -78,6 +78,7 @@ private:
     client_t * client_new (zframe_t *address);
     void send_frame_client (client_t *client, zframe_t *frame);
     void send_multicast(zframe_t *frame, client_t *except_client);
+    char **split(char *input, char *delimiter);
 #endif
     
 public:
