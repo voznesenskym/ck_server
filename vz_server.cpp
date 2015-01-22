@@ -317,6 +317,7 @@ char **vz_server::split(char *input, char *delimiter)
         result[i] = (char*)malloc(strlen(token)+1);
         strcpy(result[i], token);
         printf("%s\n", result[i]);
+        i++;
     }
     return result;
 }
