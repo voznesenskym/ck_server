@@ -200,6 +200,7 @@ void vz_server::run()
             zhash_t *metadata_from_codec = curve_codec_metadata(client->codec);
             char *client_identity = (char *)zhash_lookup (metadata_from_codec, "identity");
             printf("client identity is %s \n", client_identity);
+            client->identity = client_identity;
             
             zhash_insert(this->clients_by_identity, client_identity, client);
 
@@ -231,6 +232,12 @@ void vz_server::run()
                         // zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                         // zframe_send (&encrypted, this->router_socket, 0);
                         // this->send_multicast(cleartext_cpy, client);
+                        client_t *bob_identity = (char *)zhash_lookup (clients_by_identity, "Bob");
+                        printf("client identity with bob is %s \n", bob_identity->identity);
+
+                        client_t *alice_identity = (char *)zhash_lookup (clients_by_identity, "Alice");
+                        printf("client identity with alice is %s \n", alice_identity->identity);
+
                         if (target_client) {
                             printf("Sending to target_client \n");
                             this->send_frame_client(target_client, cleartext_cpy);
