@@ -203,13 +203,13 @@ void vz_server::run()
             
             zhash_insert(this->clients_by_identity, client_identity, client);
 
-            char **split_cleartext = self->split(cleartext_string,";");
+            char **split_cleartext = this->split(cleartext_string,";");
 
             char *target_of_msg = split_cleartext[0];
 
             printf("Target of msg is %s\n", target_of_msg);
 
-            client_t *target_client = zhash_lookup(this->clients_by_identity, target_of_msg);
+            client_t *target_client = (client_t*)zhash_lookup(this->clients_by_identity, target_of_msg);
 
 
             if (cleartext)
