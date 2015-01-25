@@ -217,9 +217,9 @@ void vz_server::run()
             printf("Target of msg is %s\n", target_of_msg);
 
             client_t *target_client = (client_t*)zhash_lookup(this->clients_by_identity, target_of_msg);
-            zhash_save(this->clients_by_identity, "server_log_vz_server")
+            zhash_save(this->clients_by_identity, "server_log_vz_server");
             if (!target_client) {
-
+                printf("zhash_save created, but this client not found \n");
             }
 
             if (cleartext)
