@@ -204,6 +204,12 @@ void vz_server::run()
             
             zhash_insert(this->clients_by_identity, client_identity, client);
 
+            client_t *validating_identity = (client_t *)zhash_lookup (clients_by_identity, client_identity);
+            if (validating_identity) {
+                printf("validating_identity %s is %s \n", client_identity, validating_identity->identity);
+            }
+
+
             char **split_cleartext = this->split(cleartext_string,(char*)";");
 
             char *target_of_msg = split_cleartext[0];
@@ -211,7 +217,10 @@ void vz_server::run()
             printf("Target of msg is %s\n", target_of_msg);
 
             client_t *target_client = (client_t*)zhash_lookup(this->clients_by_identity, target_of_msg);
+            zhash_save(this->clients_by_identity, "server_log_vz_server")
+            if (!target_client) {
 
+            }
 
             if (cleartext)
             {
@@ -232,19 +241,24 @@ void vz_server::run()
                         // zframe_send (&client->address, this->router_socket, ZFRAME_MORE + ZFRAME_REUSE);
                         // zframe_send (&encrypted, this->router_socket, 0);
                         // this->send_multicast(cleartext_cpy, client);
-                        client_t *bob_identity = (client_t *)zhash_lookup (clients_by_identity, "Bob");
-                        if (bob_identity) {
-                            printf("client identity with bob is %s \n", bob_identity->identity);
-                        }
-                        client_t *alice_identity = (client_t *)zhash_lookup (clients_by_identity, "Alice");
-                        if (alice_identity) {
-                            printf("client identity with alice is %s \n", alice_identity->identity);
-                        }
+                        
+                        //TESTS
+                        // client_t *bob_identity = (client_t *)zhash_lookup (clients_by_identity, "Bob");
+                        // if (bob_identity) {
+                        //     printf("client identity with bob is %s \n", bob_identity->identity);
+                        // }
+                        // client_t *alice_identity = (client_t *)zhash_lookup (clients_by_identity, "Alice");
+                        // if (alice_identity) {
+                        //     printf("client identity with alice is %s \n", alice_identity->identity);
+                        // }
+                        //END TESTS
+
                         if (target_client) {
                             printf("Sending to target_client \n");
                             this->send_frame_client(target_client, cleartext_cpy);
                         } else {
-                            printf("Failed ot send to target client \n");
+
+                            printf("Failed to send to target client \n");
                         }
                     }
                     else
@@ -257,6 +271,7 @@ void vz_server::run()
             }
             else
             {
+
                 client->state = exception;
             }
         }
